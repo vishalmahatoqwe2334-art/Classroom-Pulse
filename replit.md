@@ -1,6 +1,6 @@
-# [Project name]
+# Classroom Pulse
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A privacy-first attendance and classroom participation workspace for teachers and administrators.
 
 ## Run & Operate
 
@@ -22,15 +22,22 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/classroom-pulse` — React web application
+- `artifacts/api-server/src/routes` — authenticated API routes
+- `lib/api-spec/openapi.yaml` — API contract source of truth
+- `lib/db/src/schema` — PostgreSQL/Drizzle schema
+- `README.md` — setup, current scope, and privacy limitations
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Clerk provides sign-in; the app stores its own role and scoped classroom records.
+- Attendance corrections are explicitly manual and clear any AI confidence score.
+- Optional visual/audio consent defaults to off; no raw recordings are stored.
+- Participation observations are separate from attendance and are not measures of learning or emotion.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Teachers can organize courses and students, run sessions, review/correct attendance, configure optional processing consent, and export reports. Multimedia processing is a later phase and is not active in this version.
 
 ## User preferences
 

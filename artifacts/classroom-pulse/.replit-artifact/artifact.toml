@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/classroom-pulse/"
+title = "Classroom Pulse"
+description = "A privacy-first attendance and classroom participation workspace for teachers and administrators. Manage courses and learners, review attendance suggestions, track transparent participation indicators, and export session reports."
+version = "1.0.0"
+id = "artifacts/classroom-pulse"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/classroom-pulse/" ]
+localPort = 21469
+
+[services.development]
+run = "pnpm --filter @workspace/classroom-pulse run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/classroom-pulse", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/classroom-pulse/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21469"
+BASE_PATH = "/classroom-pulse/"

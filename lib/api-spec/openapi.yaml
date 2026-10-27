@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: classroom
+    description: Classroom management and attendance
+  - name: reports
+    description: Attendance and participation reporting
+  - name: privacy
+    description: Consent and privacy controls
 paths:
   /healthz:
     get:
@@ -24,6 +30,267 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /me:
+    get:
+      operationId: getCurrentUser
+      tags: [classroom]
+      summary: Get the signed-in application profile
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppUser"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [classroom]
+      summary: Get dashboard totals and recent classroom activity
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /courses:
+    get:
+      operationId: listCourses
+      tags: [classroom]
+      summary: List courses
+      responses:
+        "200":
+          description: Courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+    post:
+      operationId: createCourse
+      tags: [classroom]
+      summary: Create a course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseInput"
+      responses:
+        "201":
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+  /students:
+    get:
+      operationId: listStudents
+      tags: [classroom]
+      summary: List students
+      parameters:
+        - name: courseId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Students and consent state
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+    post:
+      operationId: createStudent
+      tags: [classroom]
+      summary: Add a student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentInput"
+      responses:
+        "201":
+          description: Student created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [classroom]
+      summary: List class sessions
+      parameters:
+        - name: courseId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Class sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClassSession"
+    post:
+      operationId: createSession
+      tags: [classroom]
+      summary: Start an attendance session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionInput"
+      responses:
+        "201":
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassSession"
+  /sessions/{sessionId}:
+    get:
+      operationId: getSession
+      tags: [classroom]
+      summary: Get session attendance and indicators
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionDetail"
+  /sessions/{sessionId}/attendance/{studentId}:
+    patch:
+      operationId: updateAttendance
+      tags: [classroom]
+      summary: Review or correct a student's attendance
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AttendanceUpdate"
+      responses:
+        "200":
+          description: Updated attendance record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttendanceRecord"
+  /sessions/{sessionId}/end:
+    post:
+      operationId: endSession
+      tags: [classroom]
+      summary: End a class session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ended session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClassSession"
+  /reports/attendance:
+    get:
+      operationId: getAttendanceReport
+      tags: [reports]
+      summary: Get attendance and participation report
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: courseId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Report rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportRow"
+  /privacy/consents:
+    get:
+      operationId: listConsents
+      tags: [privacy]
+      summary: List consent settings for students
+      responses:
+        "200":
+          description: Consent settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConsentRecord"
+  /privacy/consents/{studentId}:
+    patch:
+      operationId: updateConsent
+      tags: [privacy]
+      summary: Update a student's optional processing consent
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentUpdate"
+      responses:
+        "200":
+          description: Updated consent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentRecord"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +300,150 @@ components:
           type: string
       required:
         - status
+    AppUser:
+      type: object
+      required: [id, name, email, role]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [admin, teacher, student] }
+    DashboardSummary:
+      type: object
+      required: [students, courses, presentToday, absentToday, lateToday, needsReview, recentSessions]
+      properties:
+        students: { type: integer }
+        courses: { type: integer }
+        presentToday: { type: integer }
+        absentToday: { type: integer }
+        lateToday: { type: integer }
+        needsReview: { type: integer }
+        recentSessions:
+          type: array
+          items: { $ref: "#/components/schemas/ClassSession" }
+    Course:
+      type: object
+      required: [id, name, code, room, schedule, studentCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        code: { type: string }
+        room: { type: string }
+        schedule: { type: string }
+        studentCount: { type: integer }
+    CourseInput:
+      type: object
+      required: [name, code, room, schedule]
+      properties:
+        name: { type: string, minLength: 1 }
+        code: { type: string, minLength: 1 }
+        room: { type: string }
+        schedule: { type: string }
+    Student:
+      type: object
+      required: [id, name, email, studentNumber, courseIds, consentFace, consentAudio]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        studentNumber: { type: string }
+        courseIds:
+          type: array
+          items: { type: integer }
+        consentFace: { type: boolean }
+        consentAudio: { type: boolean }
+    StudentInput:
+      type: object
+      required: [name, email, studentNumber, courseIds]
+      properties:
+        name: { type: string, minLength: 1 }
+        email: { type: string, format: email }
+        studentNumber: { type: string, minLength: 1 }
+        courseIds:
+          type: array
+          items: { type: integer }
+    ClassSession:
+      type: object
+      required: [id, courseId, courseName, room, status, startedAt, enrolledCount, presentCount, reviewCount]
+      properties:
+        id: { type: integer }
+        courseId: { type: integer }
+        courseName: { type: string }
+        room: { type: string }
+        status: { type: string, enum: [live, completed] }
+        startedAt: { type: string, format: date-time }
+        endedAt: { type: ["string", "null"], format: date-time }
+        enrolledCount: { type: integer }
+        presentCount: { type: integer }
+        reviewCount: { type: integer }
+    SessionInput:
+      type: object
+      required: [courseId, room]
+      properties:
+        courseId: { type: integer }
+        room: { type: string }
+    AttendanceRecord:
+      type: object
+      required: [studentId, studentName, studentNumber, status, confidence, updatedAt, method]
+      properties:
+        studentId: { type: integer }
+        studentName: { type: string }
+        studentNumber: { type: string }
+        status: { type: string, enum: [present, absent, late, unverified] }
+        confidence: { type: ["number", "null"], minimum: 0, maximum: 1 }
+        updatedAt: { type: string, format: date-time }
+        method: { type: string, enum: [manual, visual-suggestion, roster] }
+        note: { type: ["string", "null"] }
+    SessionDetail:
+      type: object
+      required: [session, attendance, observations]
+      properties:
+        session: { $ref: "#/components/schemas/ClassSession" }
+        attendance:
+          type: array
+          items: { $ref: "#/components/schemas/AttendanceRecord" }
+        observations:
+          type: array
+          items: { $ref: "#/components/schemas/EngagementObservation" }
+    AttendanceUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [present, absent, late, unverified] }
+        note: { type: string }
+    EngagementObservation:
+      type: object
+      required: [label, value, observedAt, dataQuality]
+      properties:
+        label: { type: string }
+        value: { type: number, minimum: 0, maximum: 1 }
+        observedAt: { type: string, format: date-time }
+        dataQuality: { type: string, enum: [sufficient, insufficient] }
+    ReportRow:
+      type: object
+      required: [studentId, studentName, sessions, present, late, absent, attendanceRate, participationIndicator]
+      properties:
+        studentId: { type: integer }
+        studentName: { type: string }
+        sessions: { type: integer }
+        present: { type: integer }
+        late: { type: integer }
+        absent: { type: integer }
+        attendanceRate: { type: number }
+        participationIndicator: { type: ["number", "null"] }
+    ConsentRecord:
+      type: object
+      required: [studentId, studentName, faceAnalysis, audioParticipation, updatedAt]
+      properties:
+        studentId: { type: integer }
+        studentName: { type: string }
+        faceAnalysis: { type: boolean }
+        audioParticipation: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+    ConsentUpdate:
+      type: object
+      required: [faceAnalysis, audioParticipation]
+      properties:
+        faceAnalysis: { type: boolean }
+        audioParticipation: { type: boolean }
 
